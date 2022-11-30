@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
+import Error from "./Error";
 
-const Formulario = () => {
+const Formulario = ({ pacientes, setPacientes, paciente, setPaciente }) => {
     const [nombre, setNombre] = useState('');
     const [propietario, setPropietario] = useState('');
     const [email, setEmail] = useState('');
@@ -9,6 +10,24 @@ const Formulario = () => {
 
     const [error, setError] = useState(false);
 
+    useEffect(() => {
+        if (Object.keys(paciente).length > 0) {
+            setNombre(paciente.nombre);
+            setPropietario(paciente.propietario);
+            setEmail(paciente.email);
+            setFecha(paciente.fecha);
+            setSintomas(paciente.sintomas);
+        }
+    }, [paciente]);
+
+
+    const generarId = () => {
+        const random = Math.random().toString(36).substring(2);
+        const fecha = Date.now().toString(36);
+
+        return random + fecha;
+    }
+
     const handleSubmit = (e) => {
         e.preventDefault();
 
@@ -16,9 +35,41 @@ const Formulario = () => {
         if ([nombre, propietario, email, fecha, sintomas].includes('')) {
             setError(true);
         } else {
-            console.log('Enviando formulario');
             setError(false);
 
+            //objeto de paciente
+            const objetoPaciente = {
+                nombre,
+                propietario,
+                email,
+                fecha,
+                sintomas,
+                id: generarId()
+            }
+
+            if (paciente.id) {
+                //editando
+                objetoPaciente.id = paciente.id;
+
+                const pacientesActualizados = pacientes.map(pacienteState => pacienteState.id === paciente.id ? objetoPaciente : pacienteState);
+
+                setPacientes(pacientesActualizados);
+                setPaciente({})
+
+
+            } else {
+                //agregando
+                objetoPaciente.id = generarId();
+                setPacientes([...pacientes, objetoPaciente]);
+
+            }
+
+            setNombre('');
+            setPropietario('');
+            setEmail('');
+            setFecha('');
+            setSintomas('');
+            console.log('Enviando formulario');
 
         }
     }
@@ -98,12 +149,14 @@ const Formulario = () => {
                         value={sintomas}
                         onChange={(e) => setSintomas(e.target.value)} />
                 </div>
+                {/* {error && <Error mensaje='Todos los campos son obligatorios' />} */}
 
-                {error && <div className="bg-red-800 text-white text-center p-3 uppercase font-bold mt-5 rounded mb-5"><p>Todos los campos son obligatorios</p></div>}
+                {/* children option below */}
+                {error && <Error>Todos los campos son obligatorios</Error>}
 
                 <input type="submit"
                     className="bg-indigo-600 w-full p-3 text-white uppercase font-bold hover:bg-indigo-700 cursor-pointer transition-all"
-                    value="agregar paciente" />
+                    value={paciente.id ? 'Editar paciente' : 'Agregar paciente'} />
 
 
 
